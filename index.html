@@ -191,38 +191,19 @@
   }
   .modal-box h2{font-size:19px;text-transform:uppercase;margin-bottom:6px;}
   .modal-box p{color:var(--text-muted);font-size:13px;margin:0 0 16px;line-height:1.5;}
-  .name-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
-  .name-pick{
-    background:var(--bg-panel-alt);border:1px solid var(--border);color:var(--text);
-    padding:7px 13px;border-radius:100px;font-size:13.5px;
-  }
-  .name-pick:hover{border-color:var(--accent);}
-  .new-name-row{display:flex;gap:8px;}
-  .new-name-row input{
-    flex:1;background:var(--bg-panel-alt);border:1px solid var(--border);color:var(--text);
-    padding:10px 12px;border-radius:9px;font-size:14px;
-  }
-  .new-name-row input:focus{outline:none;border-color:var(--accent);}
-  .primary-btn{
-    background:var(--accent);color:#fff;border:none;padding:10px 16px;border-radius:9px;
-    font-size:13.5px;font-weight:600;
-  }
-  .divider-txt{color:var(--text-muted);font-size:11.5px;text-align:center;margin:14px 0;text-transform:uppercase;letter-spacing:.06em;}
-
-  .modal-form-col{display:flex;flex-direction:column;gap:9px;}
+  .modal-form-col{display:flex;flex-direction:column;gap:10px;}
   .modal-form-col input{
     background:var(--bg-panel-alt);border:1px solid var(--border);color:var(--text);
-    padding:10px 12px;border-radius:9px;font-size:14px;
+    padding:11px 13px;border-radius:9px;font-size:14.5px;
   }
   .modal-form-col input:focus{outline:none;border-color:var(--accent);}
-  .pin-input-field{
-    width:100%;background:var(--bg-panel-alt);border:1px solid var(--border);color:var(--text);
-    padding:10px 14px;border-radius:9px;font-size:22px;letter-spacing:10px;text-align:center;
-    box-sizing:border-box;margin:4px 0 10px;
+  .primary-btn{
+    background:var(--accent);color:#fff;border:none;padding:11px 16px;border-radius:9px;
+    font-size:14px;font-weight:600;
   }
-  .pin-input-field:focus{outline:none;border-color:var(--accent);}
-  .modal-error{color:var(--danger);font-size:12.5px;line-height:1.4;margin:2px 0 4px;min-height:16px;}
-  .modal-actions{display:flex;gap:8px;margin-top:6px;}
+  .primary-btn:disabled{opacity:0.6;cursor:not-allowed;}
+  .modal-error{color:var(--danger);font-size:12.5px;line-height:1.4;margin:1px 0 2px;min-height:16px;}
+
 
   .refresh-row{display:flex;justify-content:flex-end;margin-bottom:6px;}
   .refresh-row button{background:none;border:none;color:var(--text-muted);font-size:12px;}
@@ -606,129 +587,93 @@ async function setPlayerPin(name, pin){
   }
 }
 
-/* ============ MODAL: choose player / login / register ============ */
-async function promptPinForPlayer(name){
-  const root = document.getElementById('modal-root');
-  const actualPin = await getPlayerPin(name);
-  const isFirstTimePin = !actualPin;
-
-  root.innerHTML = `
-    <div class="modal-backdrop">
-      <div class="modal-box">
-        <h2>${isFirstTimePin ? 'Crea tu PIN' : 'Introduce tu PIN'}</h2>
-        <p>${isFirstTimePin ? `Crea un PIN de 4 números para proteger a <b>${escapeHtml(name)}</b>:` : `Introduce el PIN de 4 números para <b>${escapeHtml(name)}</b>:`}</p>
-        <input id="pin-input" class="pin-input-field" type="password" maxlength="4" placeholder="••••" inputmode="numeric" pattern="[0-9]*" autofocus>
-        <div id="pin-error" class="modal-error"></div>
-        <div class="modal-actions">
-          <button class="primary-btn" id="pin-submit-btn" style="flex:1;">${isFirstTimePin ? 'Guardar y entrar' : 'Entrar'}</button>
-          <button class="ghost-btn" id="pin-back-btn">Volver</button>
-        </div>
-      </div>
-    </div>`;
-
-  const pinInput = document.getElementById('pin-input');
-  const errorEl = document.getElementById('pin-error');
-  const submitBtn = document.getElementById('pin-submit-btn');
-  const backBtn = document.getElementById('pin-back-btn');
-
-  backBtn.addEventListener('click', showPlayerModal);
-
-  const verifyAndGo = async () => {
-    const val = pinInput.value.trim();
-    if(!/^\d{4}$/.test(val)){
-      errorEl.textContent = 'El PIN debe contener exactamente 4 números.';
-      return;
-    }
-    if(isFirstTimePin){
-      await setPlayerPin(name, val);
-      await selectPlayer(name, val);
-    } else {
-      if(val === actualPin){
-        await selectPlayer(name, val);
-      } else {
-        errorEl.textContent = 'PIN incorrecto. Inténtalo de nuevo.';
-        pinInput.value = '';
-        pinInput.focus();
-      }
-    }
-  };
-
-  submitBtn.addEventListener('click', verifyAndGo);
-  pinInput.addEventListener('keydown', e => { if(e.key === 'Enter') verifyAndGo(); });
-  setTimeout(() => pinInput.focus(), 80);
-}
-
-async function showPlayerModal(){
-  await loadPlayers();
+/* ============ MODAL: login / register ============ */
+async function showPlayerModal(prefillName){
   const root = document.getElementById('modal-root');
   root.innerHTML = `
     <div class="modal-backdrop">
       <div class="modal-box">
-        <h2>¿Quién juega?</h2>
-        <p>Selecciona tu nombre e ingresa tu PIN, o regístrate si juegas por primera vez.</p>
-        
-        ${players.length ? `
-          <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;">Jugadores registrados:</div>
-          <div class="name-list" id="name-list">
-            ${players.map(p => `<button class="name-pick" data-name="${escapeHtml(p)}">${escapeHtml(p)} 🔒</button>`).join('')}
-          </div>
-          <div class="divider-txt">o crea un jugador nuevo</div>
-        ` : ''}
+        <h2>Entrar a jugar</h2>
+        <p>Ingresa tu nombre y tu PIN de 4 números. Si es tu primera vez, tu usuario se creará automáticamente con ese PIN.</p>
 
         <div class="modal-form-col">
-          <input id="new-name-input" type="text" placeholder="Tu nombre o apodo" maxlength="20">
-          <input id="new-pin-input" type="password" placeholder="PIN de 4 dígitos (ej. 1234)" maxlength="4" inputmode="numeric" pattern="[0-9]*">
-          <div id="register-error" class="modal-error"></div>
-          <button class="primary-btn" id="new-name-btn" style="width:100%;margin-top:2px;">Registrar y Entrar</button>
+          <input id="player-name-input" type="text" placeholder="Tu nombre o apodo" maxlength="20" value="${escapeHtml(prefillName || '')}">
+          <input id="player-pin-input" type="password" placeholder="PIN de 4 dígitos" maxlength="4" inputmode="numeric" pattern="[0-9]*">
+          <div id="modal-error" class="modal-error"></div>
+          <button class="primary-btn" id="modal-submit-btn" style="width:100%;">Entrar</button>
+          ${currentPlayer ? `<button class="ghost-btn" id="modal-cancel-btn" style="width:100%;margin-top:2px;">Cancelar</button>` : ''}
         </div>
       </div>
     </div>`;
 
-  root.querySelectorAll('.name-pick').forEach(btn => {
-    btn.addEventListener('click', () => {
-      promptPinForPlayer(btn.dataset.name);
+  const nameInput = document.getElementById('player-name-input');
+  const pinInput = document.getElementById('player-pin-input');
+  const errorEl = document.getElementById('modal-error');
+  const submitBtn = document.getElementById('modal-submit-btn');
+  const cancelBtn = document.getElementById('modal-cancel-btn');
+
+  if(cancelBtn){
+    cancelBtn.addEventListener('click', () => {
+      root.innerHTML = '';
     });
-  });
+  }
 
-  const nameInput = document.getElementById('new-name-input');
-  const pinInput = document.getElementById('new-pin-input');
-  const errorEl = document.getElementById('register-error');
-  const registerBtn = document.getElementById('new-name-btn');
-
-  const handleRegister = async () => {
+  const handleAuth = async () => {
     const nameVal = nameInput.value.trim();
     const pinVal = pinInput.value.trim();
 
     if(!nameVal){
       errorEl.textContent = 'Por favor escribe tu nombre.';
+      nameInput.focus();
       return;
     }
     if(nameVal.length < 2){
       errorEl.textContent = 'El nombre debe tener al menos 2 caracteres.';
-      return;
-    }
-    const exists = players.some(p => p.toLowerCase() === nameVal.toLowerCase());
-    if(exists){
-      errorEl.textContent = `"${nameVal}" ya está registrado. Toca tu nombre arriba para ingresar con tu PIN.`;
+      nameInput.focus();
       return;
     }
     if(!/^\d{4}$/.test(pinVal)){
       errorEl.textContent = 'El PIN debe contener exactamente 4 números.';
+      pinInput.focus();
       return;
     }
 
     errorEl.textContent = '';
-    registerBtn.disabled = true;
-    registerBtn.textContent = 'Registrando...';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Entrando...';
 
-    await setPlayerPin(nameVal, pinVal);
-    await registerPlayer(nameVal);
-    await selectPlayer(nameVal, pinVal);
+    await loadPlayers();
+    const existing = players.find(p => p.toLowerCase() === nameVal.toLowerCase());
+
+    if(existing){
+      const actualPin = await getPlayerPin(existing);
+      if(actualPin && actualPin !== pinVal){
+        errorEl.textContent = 'PIN incorrecto para este usuario.';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Entrar';
+        pinInput.value = '';
+        pinInput.focus();
+        return;
+      }
+      if(!actualPin){
+        await setPlayerPin(existing, pinVal);
+      }
+      await selectPlayer(existing, pinVal);
+    } else {
+      await setPlayerPin(nameVal, pinVal);
+      await registerPlayer(nameVal);
+      await selectPlayer(nameVal, pinVal);
+    }
   };
 
-  registerBtn.addEventListener('click', handleRegister);
-  pinInput.addEventListener('keydown', e => { if(e.key === 'Enter') handleRegister(); });
+  submitBtn.addEventListener('click', handleAuth);
+  pinInput.addEventListener('keydown', e => { if(e.key === 'Enter') handleAuth(); });
   nameInput.addEventListener('keydown', e => { if(e.key === 'Enter') pinInput.focus(); });
+
+  setTimeout(() => {
+    if(prefillName && pinInput) pinInput.focus();
+    else if(nameInput) nameInput.focus();
+  }, 80);
 }
 
 async function selectPlayer(name, pin){
@@ -1013,7 +958,7 @@ async function init(){
       renderPlayerBar();
       renderAll();
     } else {
-      await promptPinForPlayer(savedName);
+      await showPlayerModal(savedName);
     }
   } else {
     await showPlayerModal();
