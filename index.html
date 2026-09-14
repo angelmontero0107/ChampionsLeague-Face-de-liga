@@ -691,11 +691,30 @@ async function selectPlayer(name, pin){
 /* ============ RENDER: player bar ============ */
 function renderPlayerBar(){
   const bar = document.getElementById('player-bar');
+  if(!currentPlayer){
+    bar.innerHTML = `
+      <button class="primary-btn" id="login-btn" style="padding:7px 16px;border-radius:100px;font-size:13px;">Iniciar sesión</button>
+    `;
+    document.getElementById('login-btn').addEventListener('click', () => showPlayerModal());
+    return;
+  }
   bar.innerHTML = `
     <div class="player-chip"><span class="dot"></span>Jugando como <b style="margin-left:3px">${escapeHtml(currentPlayer)}</b></div>
-    <button class="ghost-btn" id="switch-player-btn">Cambiar jugador</button>
+    <button class="ghost-btn" id="logout-btn">Cerrar sesión</button>
   `;
-  document.getElementById('switch-player-btn').addEventListener('click', showPlayerModal);
+  document.getElementById('logout-btn').addEventListener('click', logoutPlayer);
+}
+
+function logoutPlayer(){
+  currentPlayer = null;
+  myPredictions = {};
+  try{
+    localStorage.removeItem('my-player-name');
+    localStorage.removeItem('my-player-pin');
+  }catch(e){}
+  renderPlayerBar();
+  renderAll();
+  showPlayerModal();
 }
 
 /* ============ RENDER: predictions view ============ */
