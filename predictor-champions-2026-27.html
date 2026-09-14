@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Predictor Champions 26/27</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0F1E;
+    --bg-panel:#121A33;
+    --bg-panel-alt:#182242;
+    --accent:#3D6BFF;
+    --accent-soft:#3D6BFF22;
+    --gold:#E7B740;
+    --text:#F3F5FA;
+    --text-muted:#8C93AF;
+    --success:#34C77B;
+    --success-soft:#34C77B22;
+    --danger:#F0553D;
+    --border:rgba(255,255,255,0.09);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:radial-gradient(ellipse at top, #101a38 0%, var(--bg) 55%);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--accent-soft);}
+  h1,h2,h3,.headline{
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    letter-spacing:0.01em;
+    margin:0;
+  }
+  .tabular{font-variant-numeric:tabular-nums;}
+  button{font-family:inherit;cursor:pointer;}
+  input{font-family:inherit;}
+
+  /* ---------- layout shells ---------- */
+  .wrap{max-width:880px;margin:0 auto;padding:0 18px 80px;}
+  header.hero{
+    padding:38px 18px 26px;
+    border-bottom:1px solid var(--border);
+    background:linear-gradient(180deg, #0D1430 0%, transparent 100%);
+  }
+  .hero-inner{max-width:880px;margin:0 auto;display:flex;flex-direction:column;gap:6px;}
+  .eyebrow-row{display:flex;align-items:center;gap:10px;}
+  .ball{
+    width:30px;height:30px;border-radius:50%;
+    background:conic-gradient(from 0deg, var(--accent), var(--gold), var(--accent));
+    position:relative;flex-shrink:0;
+    box-shadow:0 0 18px var(--accent-soft);
+  }
+  .ball:before{
+    content:'';position:absolute;inset:5px;border-radius:50%;
+    background:var(--bg);
+  }
+  h1.title{font-size:26px;text-transform:uppercase;color:var(--text);}
+  .subtitle{color:var(--text-muted);font-size:14.5px;line-height:1.5;max-width:520px;}
+
+  .player-bar{
+    margin-top:18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  }
+  .player-chip{
+    display:flex;align-items:center;gap:8px;
+    background:var(--bg-panel);border:1px solid var(--border);
+    padding:8px 14px;border-radius:100px;font-size:14px;
+  }
+  .player-chip .dot{width:8px;height:8px;border-radius:50%;background:var(--success);}
+  .ghost-btn{
+    background:transparent;border:1px solid var(--border);color:var(--text-muted);
+    padding:8px 14px;border-radius:100px;font-size:13px;transition:border-color .15s, color .15s;
+  }
+  .ghost-btn:hover{border-color:var(--accent);color:var(--text);}
+
+  /* ---------- nav tabs ---------- */
+  nav.main-tabs{
+    display:flex;gap:4px;margin:22px 0 18px;
+    border-bottom:1px solid var(--border);
+  }
+  nav.main-tabs button{
+    background:transparent;border:none;color:var(--text-muted);
+    font-family:'Oswald',sans-serif;font-size:15px;letter-spacing:.02em;
+    padding:10px 4px;margin-right:22px;border-bottom:2px solid transparent;
+    text-transform:uppercase;
+  }
+  nav.main-tabs button.active{color:var(--text);border-color:var(--accent);}
+
+  /* ---------- matchday pills ---------- */
+  .md-scroll{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 14px;scrollbar-width:thin;}
+  .md-pill{
+    flex-shrink:0;background:var(--bg-panel);border:1px solid var(--border);
+    color:var(--text-muted);padding:9px 16px;border-radius:10px;font-size:13.5px;
+    font-family:'Oswald',sans-serif;letter-spacing:.02em;white-space:nowrap;
+    display:flex;flex-direction:column;align-items:center;gap:2px;
+    transition:all .15s;
+  }
+  .md-pill .sub{font-family:'Inter',sans-serif;font-size:10px;color:var(--text-muted);opacity:.8;}
+  .md-pill.active{background:var(--accent-soft);border-color:var(--accent);color:var(--text);}
+  .md-pill.done .sub{color:var(--success);}
+
+  /* ---------- match cards ---------- */
+  .day-group{margin-bottom:22px;}
+  .day-label{
+    font-size:12.5px;color:var(--text-muted);text-transform:capitalize;
+    margin:0 0 10px 2px;
+  }
+  .match-card{
+    background:var(--bg-panel);border:1px solid var(--border);border-radius:14px;
+    padding:14px 16px;margin-bottom:9px;
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+  }
+  .match-card.locked{opacity:.72;}
+  .teams{flex:1;min-width:0;display:flex;flex-direction:column;gap:9px;}
+  .team-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .team-name{font-size:14.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .team-name.winner{color:var(--gold);font-weight:600;}
+  .score-wrap{display:flex;align-items:center;gap:5px;}
+  .score-input{
+    width:34px;height:34px;text-align:center;border-radius:8px;
+    background:var(--bg-panel-alt);border:1px solid var(--border);color:var(--text);
+    font-size:15px;font-weight:600;
+  }
+  .score-input:disabled{opacity:.55;}
+  .score-input:focus{outline:none;border-color:var(--accent);}
+  .real-score{
+    width:34px;height:34px;display:flex;align-items:center;justify-content:center;
+    border-radius:8px;background:var(--success-soft);color:var(--success);
+    font-weight:700;font-size:15px;
+  }
+  .meta-col{display:flex;flex-direction:column;align-items:flex-end;gap:6px;min-width:92px;}
+  .kickoff{font-size:11px;color:var(--text-muted);text-align:right;}
+  .status-badge{
+    font-size:10.5px;padding:3px 9px;border-radius:100px;font-weight:600;
+    letter-spacing:.02em;white-space:nowrap;
+  }
+  .status-open{background:var(--accent-soft);color:#9DB4FF;}
+  .status-locked{background:rgba(255,255,255,0.07);color:var(--text-muted);}
+  .status-final{background:var(--success-soft);color:var(--success);}
+  .points-pill{
+    font-size:11px;font-weight:700;padding:2px 8px;border-radius:100px;
+  }
+  .points-3{background:var(--gold);color:#241a02;}
+  .points-1{background:var(--success-soft);color:var(--success);}
+  .points-0{background:rgba(255,255,255,0.06);color:var(--text-muted);}
+
+  .result-entry{
+    margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);
+    display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted);
+  }
+  .result-entry input{width:30px;height:26px;text-align:center;border-radius:6px;
+    background:var(--bg-panel-alt);border:1px solid var(--border);color:var(--text);font-size:13px;}
+  .result-entry button{
+    background:var(--accent);color:#fff;border:none;padding:5px 11px;border-radius:7px;font-size:11.5px;font-weight:600;
+  }
+
+  /* ---------- leaderboard ---------- */
+  .board-row{
+    display:flex;align-items:center;gap:14px;
+    background:var(--bg-panel);border:1px solid var(--border);border-radius:12px;
+    padding:12px 16px;margin-bottom:8px;
+  }
+  .board-row.me{border-color:var(--accent);}
+  .rank{font-family:'Oswald',sans-serif;font-size:18px;color:var(--text-muted);width:22px;}
+  .rank.top{color:var(--gold);}
+  .board-name{flex:1;font-weight:600;font-size:15px;}
+  .board-pts{font-family:'Oswald',sans-serif;font-size:18px;color:var(--text);}
+  .board-pts .lbl{font-family:'Inter',sans-serif;font-size:11px;color:var(--text-muted);margin-left:3px;}
+  .empty-note{color:var(--text-muted);font-size:13.5px;text-align:center;padding:30px 10px;}
+
+  .rules-box{
+    background:var(--bg-panel);border:1px solid var(--border);border-radius:12px;
+    padding:14px 16px;margin-bottom:18px;font-size:13px;color:var(--text-muted);line-height:1.6;
+  }
+  .rules-box b{color:var(--text);}
+
+  /* ---------- modal ---------- */
+  .modal-backdrop{
+    position:fixed;inset:0;background:rgba(6,9,20,.78);backdrop-filter:blur(3px);
+    display:flex;align-items:center;justify-content:center;z-index:50;padding:20px;
+  }
+  .modal-box{
+    background:var(--bg-panel);border:1px solid var(--border);border-radius:16px;
+    padding:26px 24px;max-width:360px;width:100%;
+  }
+  .modal-box h2{font-size:19px;text-transform:uppercase;margin-bottom:6px;}
+  .modal-box p{color:var(--text-muted);font-size:13px;margin:0 0 16px;line-height:1.5;}
+  .name-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+  .name-pick{
+    background:var(--bg-panel-alt);border:1px solid var(--border);color:var(--text);
+    padding:7px 13px;border-radius:100px;font-size:13.5px;
+  }
+  .name-pick:hover{border-color:var(--accent);}
+  .new-name-row{display:flex;gap:8px;}
+  .new-name-row input{
+    flex:1;background:var(--bg-panel-alt);border:1px solid var(--border);color:var(--text);
+    padding:10px 12px;border-radius:9px;font-size:14px;
+  }
+  .new-name-row input:focus{outline:none;border-color:var(--accent);}
+  .primary-btn{
+    background:var(--accent);color:#fff;border:none;padding:10px 16px;border-radius:9px;
+    font-size:13.5px;font-weight:600;
+  }
+  .divider-txt{color:var(--text-muted);font-size:11.5px;text-align:center;margin:14px 0;text-transform:uppercase;letter-spacing:.06em;}
+
+  .refresh-row{display:flex;justify-content:flex-end;margin-bottom:6px;}
+  .refresh-row button{background:none;border:none;color:var(--text-muted);font-size:12px;}
+  .refresh-row button:hover{color:var(--accent);}
+
+  @media (max-width:480px){
+    .meta-col{min-width:70px;}
+    .team-name{font-size:13.5px;}
+    h1.title{font-size:21px;}
+  }
+</style>
+</head>
+<body>
+
+<div id="modal-root"></div>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow-row">
+      <div class="ball"></div>
+      <h1 class="title">Predictor Champions 26/27</h1>
+    </div>
+    <p class="subtitle">Adivina los resultados de la fase de liga de la Champions League 2026/27 y compite con tus amigos. 3 puntos por marcador exacto, 1 punto por acertar el ganador (o el empate).</p>
+    <div class="player-bar" id="player-bar"></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="main-tabs" id="main-tabs">
+    <button data-tab="predict" class="active">Predicciones</button>
+    <button data-tab="board">Clasificación</button>
+  </nav>
+
+  <div class="refresh-row"><button id="refresh-btn">↻ actualizar datos</button></div>
+
+  <div id="predict-view"></div>
+  <div id="board-view" style="display:none;"></div>
+</div>
+
+<script>
+/* ============ FIXTURE DATA ============
+   [matchday, date(YYYY-MM-DD), time(CET), home, away, resultHome|null, resultAway|null]
+============================================= */
+const RAW_MATCHES = [
+[1,"2026-09-08","18:45","AEK Athens","LASK",1,0],
+[1,"2026-09-08","18:45","Club Brugge","Aston Villa",2,3],
+[1,"2026-09-08","21:00","Borussia Dortmund","Villarreal",3,2],
+[1,"2026-09-08","21:00","Porto","Manchester City",0,2],
+[1,"2026-09-08","21:00","Lille","Real Betis",2,3],
+[1,"2026-09-08","21:00","Real Madrid","Inter",2,1],
+[1,"2026-09-09","18:45","Barcelona","Feyenoord",5,1],
+[1,"2026-09-09","18:45","Stuttgart","Viking",3,1],
+[1,"2026-09-09","21:00","Liverpool","Atlético de Madrid",2,1],
+[1,"2026-09-09","21:00","Paris Saint-Germain","Slovan Bratislava",6,1],
+[1,"2026-09-09","21:00","Sporting CP","Galatasaray",3,1],
+[1,"2026-09-09","21:00","Napoli","Arsenal",0,1],
+[1,"2026-09-10","18:45","Fenerbahçe","Roma",1,1],
+[1,"2026-09-10","18:45","PSV Eindhoven","Shakhtar Donetsk",1,1],
+[1,"2026-09-10","21:00","Como","Leipzig",4,1],
+[1,"2026-09-10","21:00","Bayern München","Bodø/Glimt",5,0],
+[1,"2026-09-10","21:00","Manchester United","Sabah",4,0],
+[1,"2026-09-10","21:00","Slavia Praha","Lens",2,3],
+
+[2,"2026-10-13","18:45","Lens","Sporting CP",null,null],
+[2,"2026-10-13","18:45","Sabah","Slavia Praha",null,null],
+[2,"2026-10-13","21:00","Arsenal","Lille",null,null],
+[2,"2026-10-13","21:00","Atlético de Madrid","Manchester United",null,null],
+[2,"2026-10-13","21:00","Inter","Club Brugge",null,null],
+[2,"2026-10-13","21:00","Galatasaray","Barcelona",null,null],
+[2,"2026-10-13","21:00","Leipzig","PSV Eindhoven",null,null],
+[2,"2026-10-13","21:00","Viking","Bayern München",null,null],
+[2,"2026-10-13","21:00","Villarreal","Napoli",null,null],
+[2,"2026-10-14","18:45","Feyenoord","Como",null,null],
+[2,"2026-10-14","18:45","LASK","Liverpool",null,null],
+[2,"2026-10-14","21:00","Roma","Real Madrid",null,null],
+[2,"2026-10-14","21:00","Aston Villa","Fenerbahçe",null,null],
+[2,"2026-10-14","21:00","Shakhtar Donetsk","AEK Athens",null,null],
+[2,"2026-10-14","21:00","Bodø/Glimt","Borussia Dortmund",null,null],
+[2,"2026-10-14","21:00","Manchester City","Paris Saint-Germain",null,null],
+[2,"2026-10-14","21:00","Real Betis","Porto",null,null],
+[2,"2026-10-14","21:00","Slovan Bratislava","Stuttgart",null,null],
+
+[3,"2026-10-20","18:45","Fenerbahçe","Slavia Praha",null,null],
+[3,"2026-10-20","18:45","Sabah","Borussia Dortmund",null,null],
+[3,"2026-10-20","21:00","Roma","Slovan Bratislava",null,null],
+[3,"2026-10-20","21:00","Porto","PSV Eindhoven",null,null],
+[3,"2026-10-20","21:00","Liverpool","Villarreal",null,null],
+[3,"2026-10-20","21:00","Manchester City","AEK Athens",null,null],
+[3,"2026-10-20","21:00","Paris Saint-Germain","Barcelona",null,null],
+[3,"2026-10-20","21:00","Napoli","Bodø/Glimt",null,null],
+[3,"2026-10-20","21:00","Stuttgart","Atlético de Madrid",null,null],
+[3,"2026-10-21","18:45","Como","Manchester United",null,null],
+[3,"2026-10-21","18:45","Lille","Galatasaray",null,null],
+[3,"2026-10-21","21:00","Aston Villa","Viking",null,null],
+[3,"2026-10-21","21:00","Club Brugge","Lens",null,null],
+[3,"2026-10-21","21:00","Bayern München","Arsenal",null,null],
+[3,"2026-10-21","21:00","Inter","Shakhtar Donetsk",null,null],
+[3,"2026-10-21","21:00","Real Madrid","Leipzig",null,null],
+[3,"2026-10-21","21:00","Real Betis","Feyenoord",null,null],
+[3,"2026-10-21","21:00","Sporting CP","LASK",null,null],
+
+[4,"2026-11-03","18:45","Shakhtar Donetsk","Sporting CP",null,null],
+[4,"2026-11-03","18:45","Galatasaray","Stuttgart",null,null],
+[4,"2026-11-03","21:00","Atlético de Madrid","Bayern München",null,null],
+[4,"2026-11-03","21:00","Barcelona","Aston Villa",null,null],
+[4,"2026-11-03","21:00","Feyenoord","Inter",null,null],
+[4,"2026-11-03","21:00","Bodø/Glimt","Lille",null,null],
+[4,"2026-11-03","21:00","LASK","Slovan Bratislava",null,null],
+[4,"2026-11-03","21:00","Manchester United","Roma",null,null],
+[4,"2026-11-03","21:00","Villarreal","Paris Saint-Germain",null,null],
+[4,"2026-11-04","18:45","AEK Athens","Real Madrid",null,null],
+[4,"2026-11-04","18:45","Fenerbahçe","Liverpool",null,null],
+[4,"2026-11-04","21:00","Borussia Dortmund","Real Betis",null,null],
+[4,"2026-11-04","21:00","Porto","Napoli",null,null],
+[4,"2026-11-04","21:00","PSV Eindhoven","Club Brugge",null,null],
+[4,"2026-11-04","21:00","Leipzig","Manchester City",null,null],
+[4,"2026-11-04","21:00","Lens","Como",null,null],
+[4,"2026-11-04","21:00","Slavia Praha","Arsenal",null,null],
+[4,"2026-11-04","21:00","Viking","Sabah",null,null],
+
+[5,"2026-11-24","18:45","Bodø/Glimt","LASK",null,null],
+[5,"2026-11-24","18:45","Galatasaray","Aston Villa",null,null],
+[5,"2026-11-24","21:00","Arsenal","Borussia Dortmund",null,null],
+[5,"2026-11-24","21:00","Como","AEK Athens",null,null],
+[5,"2026-11-24","21:00","Feyenoord","Porto",null,null],
+[5,"2026-11-24","21:00","Manchester City","Napoli",null,null],
+[5,"2026-11-24","21:00","Leipzig","Lens",null,null],
+[5,"2026-11-24","21:00","Real Madrid","PSV Eindhoven",null,null],
+[5,"2026-11-24","21:00","Slovan Bratislava","Real Betis",null,null],
+[5,"2026-11-25","18:45","Sabah","Barcelona",null,null],
+[5,"2026-11-25","18:45","Slavia Praha","Villarreal",null,null],
+[5,"2026-11-25","21:00","Atlético de Madrid","Viking",null,null],
+[5,"2026-11-25","21:00","Club Brugge","Liverpool",null,null],
+[5,"2026-11-25","21:00","Inter","Stuttgart",null,null],
+[5,"2026-11-25","21:00","Shakhtar Donetsk","Fenerbahçe",null,null],
+[5,"2026-11-25","21:00","Lille","Bayern München",null,null],
+[5,"2026-11-25","21:00","Paris Saint-Germain","Roma",null,null],
+[5,"2026-11-25","21:00","Sporting CP","Manchester United",null,null],
+
+[6,"2026-12-08","18:45","Viking","Feyenoord",null,null],
+[6,"2026-12-08","18:45","Villarreal","Sabah",null,null],
+[6,"2026-12-08","21:00","AEK Athens","Galatasaray",null,null],
+[6,"2026-12-08","21:00","Roma","Sporting CP",null,null],
+[6,"2026-12-08","21:00","Aston Villa","Paris Saint-Germain",null,null],
+[6,"2026-12-08","21:00","Barcelona","Manchester City",null,null],
+[6,"2026-12-08","21:00","Bayern München","Slavia Praha",null,null],
+[6,"2026-12-08","21:00","Manchester United","Leipzig",null,null],
+[6,"2026-12-08","21:00","Napoli","Club Brugge",null,null],
+[6,"2026-12-09","18:45","Real Betis","Como",null,null],
+[6,"2026-12-09","18:45","Slovan Bratislava","Shakhtar Donetsk",null,null],
+[6,"2026-12-09","21:00","Arsenal","Real Madrid",null,null],
+[6,"2026-12-09","21:00","Borussia Dortmund","Inter",null,null],
+[6,"2026-12-09","21:00","LASK","Fenerbahçe",null,null],
+[6,"2026-12-09","21:00","Liverpool","Porto",null,null],
+[6,"2026-12-09","21:00","PSV Eindhoven","Atlético de Madrid",null,null],
+[6,"2026-12-09","21:00","Lens","Bodø/Glimt",null,null],
+[6,"2026-12-09","21:00","Stuttgart","Lille",null,null],
+
+[7,"2027-01-19","18:45","Bodø/Glimt","Atlético de Madrid",null,null],
+[7,"2027-01-19","18:45","Galatasaray","Feyenoord",null,null],
+[7,"2027-01-19","21:00","AEK Athens","Roma",null,null],
+[7,"2027-01-19","21:00","Aston Villa","Borussia Dortmund",null,null],
+[7,"2027-01-19","21:00","Inter","Liverpool",null,null],
+[7,"2027-01-19","21:00","Porto","Slavia Praha",null,null],
+[7,"2027-01-19","21:00","Lille","Slovan Bratislava",null,null],
+[7,"2027-01-19","21:00","Real Madrid","LASK",null,null],
+[7,"2027-01-19","21:00","Stuttgart","Club Brugge",null,null],
+[7,"2027-01-20","18:45","Fenerbahçe","Villarreal",null,null],
+[7,"2027-01-20","18:45","Sabah","Napoli",null,null],
+[7,"2027-01-20","21:00","Como","Paris Saint-Germain",null,null],
+[7,"2027-01-20","21:00","Manchester United","Bayern München",null,null],
+[7,"2027-01-20","21:00","Leipzig","Shakhtar Donetsk",null,null],
+[7,"2027-01-20","21:00","Lens","Manchester City",null,null],
+[7,"2027-01-20","21:00","Real Betis","Arsenal",null,null],
+[7,"2027-01-20","21:00","Sporting CP","Barcelona",null,null],
+[7,"2027-01-20","21:00","Viking","PSV Eindhoven",null,null],
+
+[8,"2027-01-27","18:00","Arsenal","Sabah",null,null],
+[8,"2027-01-27","18:00","Roma","Lille",null,null],
+[8,"2027-01-27","18:00","Atlético de Madrid","Fenerbahçe",null,null],
+[8,"2027-01-27","18:00","Borussia Dortmund","AEK Athens",null,null],
+[8,"2027-01-27","18:00","Club Brugge","Bodø/Glimt",null,null],
+[8,"2027-01-27","18:00","Bayern München","Real Betis",null,null],
+[8,"2027-01-27","18:00","Barcelona","Como",null,null],
+[8,"2027-01-27","18:00","Shakhtar Donetsk","Real Madrid",null,null],
+[8,"2027-01-27","18:00","Feyenoord","Leipzig",null,null],
+[8,"2027-01-27","18:00","LASK","Porto",null,null],
+[8,"2027-01-27","18:00","Liverpool","Lens",null,null],
+[8,"2027-01-27","18:00","Manchester City","Sporting CP",null,null],
+[8,"2027-01-27","18:00","Paris Saint-Germain","Galatasaray",null,null],
+[8,"2027-01-27","18:00","PSV Eindhoven","Stuttgart",null,null],
+[8,"2027-01-27","18:00","Slavia Praha","Aston Villa",null,null],
+[8,"2027-01-27","18:00","Napoli","Viking",null,null],
+[8,"2027-01-27","18:00","Villarreal","Manchester United",null,null],
+[8,"2027-01-27","18:00","Slovan Bratislava","Inter",null,null],
+];
+
+const MATCHES = RAW_MATCHES.map((m,i)=>({
+  id:"m"+(i+1),
+  md:m[0], date:m[1], time:m[2], home:m[3], away:m[4],
+  officialResult: (m[5]===null? null : {h:m[5], a:m[6]})
+}));
+
+const MATCHDAYS = [1,2,3,4,5,6,7,8];
+
+/* ============ STATE ============ */
+let currentPlayer = null;
+let players = [];
+let myPredictions = {};       // matchId -> {h,a}
+let liveResults = {};         // matchId -> {h,a}  (official result, may already be baked into MATCHES for md1)
+let activeMainTab = 'predict';
+let activeMD = 1;
+let leaderboardCache = [];
+
+/* ============ HELPERS ============ */
+function kickoffDate(m){ return new Date(m.date+"T"+m.time+":00+01:00"); }
+function isLocked(m){ return Date.now() >= kickoffDate(m).getTime(); }
+function getResult(m){
+  if(m.officialResult) return m.officialResult;
+  if(liveResults[m.id]) return liveResults[m.id];
+  return null;
+}
+function pointsFor(pred, result){
+  if(!pred || !result) return null;
+  if(pred.h===result.h && pred.a===result.a) return 3;
+  const predOutcome = pred.h>pred.a?'H':(pred.h<pred.a?'A':'D');
+  const resOutcome = result.h>result.a?'H':(result.h<result.a?'A':'D');
+  return predOutcome===resOutcome ? 1 : 0;
+}
+function fmtDate(d){
+  const dt = new Date(d+"T12:00:00");
+  return dt.toLocaleDateString('es-ES',{weekday:'long', day:'numeric', month:'long'});
+}
+function escapeHtml(s){ return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ============ STORAGE ============ */
+async function safeGet(key, shared){
+  try{ const r = await window.storage.get(key, shared); return r ? r.value : null; }
+  catch(e){ return null; }
+}
+async function safeSet(key, value, shared){
+  try{ await window.storage.set(key, value, shared); }catch(e){ console.error('storage set failed', e); }
+}
+
+async function loadPlayers(){
+  const raw = await safeGet('players', true);
+  players = raw ? JSON.parse(raw) : [];
+}
+async function registerPlayer(name){
+  await loadPlayers();
+  if(!players.includes(name)){
+    players.push(name);
+    await safeSet('players', JSON.stringify(players), true);
+  }
+}
+async function loadMyPredictions(){
+  if(!currentPlayer) return;
+  const raw = await safeGet('predictions:'+currentPlayer, true);
+  myPredictions = raw ? JSON.parse(raw) : {};
+}
+async function saveMyPrediction(matchId, h, a){
+  myPredictions[matchId] = {h,a};
+  await safeSet('predictions:'+currentPlayer, JSON.stringify(myPredictions), true);
+}
+async function loadLiveResults(){
+  const raw = await safeGet('results', true);
+  liveResults = raw ? JSON.parse(raw) : {};
+}
+async function submitResult(matchId, h, a){
+  liveResults[matchId] = {h,a};
+  await safeSet('results', JSON.stringify(liveResults), true);
+}
+async function loadPredictionsFor(name){
+  const raw = await safeGet('predictions:'+name, true);
+  return raw ? JSON.parse(raw) : {};
+}
+
+/* ============ MODAL: choose player ============ */
+async function showPlayerModal(){
+  await loadPlayers();
+  const root = document.getElementById('modal-root');
+  root.innerHTML = `
+    <div class="modal-backdrop">
+      <div class="modal-box">
+        <h2>¿Quién juega?</h2>
+        <p>Elige tu nombre para guardar tus pronósticos, o crea uno nuevo si es tu primera vez.</p>
+        ${players.length ? `<div class="name-list" id="name-list">${players.map(p=>`<button class="name-pick" data-name="${escapeHtml(p)}">${escapeHtml(p)}</button>`).join('')}</div><div class="divider-txt">o añade un jugador nuevo</div>` : ''}
+        <div class="new-name-row">
+          <input id="new-name-input" type="text" placeholder="Tu nombre" maxlength="20">
+          <button class="primary-btn" id="new-name-btn">Entrar</button>
+        </div>
+      </div>
+    </div>`;
+  root.querySelectorAll('.name-pick').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      await selectPlayer(btn.dataset.name);
+    });
+  });
+  const input = document.getElementById('new-name-input');
+  const go = async ()=>{
+    const val = input.value.trim();
+    if(!val) return;
+    await registerPlayer(val);
+    await selectPlayer(val);
+  };
+  document.getElementById('new-name-btn').addEventListener('click', go);
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter') go(); });
+}
+async function selectPlayer(name){
+  currentPlayer = name;
+  await safeSet('my-player-name', name, false);
+  document.getElementById('modal-root').innerHTML = '';
+  await loadMyPredictions();
+  renderPlayerBar();
+  renderAll();
+}
+
+/* ============ RENDER: player bar ============ */
+function renderPlayerBar(){
+  const bar = document.getElementById('player-bar');
+  bar.innerHTML = `
+    <div class="player-chip"><span class="dot"></span>Jugando como <b style="margin-left:3px">${escapeHtml(currentPlayer)}</b></div>
+    <button class="ghost-btn" id="switch-player-btn">Cambiar jugador</button>
+  `;
+  document.getElementById('switch-player-btn').addEventListener('click', showPlayerModal);
+}
+
+/* ============ RENDER: predictions view ============ */
+function renderPredictView(){
+  const view = document.getElementById('predict-view');
+  const mdMatches = MATCHES.filter(m=>m.md===activeMD);
+  const finishedCount = mdMatches.filter(m=>getResult(m)).length;
+
+  const pillsHtml = MATCHDAYS.map(md=>{
+    const matches = MATCHES.filter(m=>m.md===md);
+    const done = matches.every(m=>getResult(m));
+    const allLocked = matches.every(isLocked);
+    return `<button class="md-pill ${md===activeMD?'active':''} ${done?'done':''}" data-md="${md}">
+      J${md}<span class="sub">${done? 'finalizada' : (allLocked? 'en juego' : 'abierta')}</span>
+    </button>`;
+  }).join('');
+
+  const byDate = {};
+  mdMatches.forEach(m=>{ (byDate[m.date] = byDate[m.date]||[]).push(m); });
+
+  let daysHtml = '';
+  Object.keys(byDate).sort().forEach(date=>{
+    daysHtml += `<div class="day-group"><div class="day-label">${fmtDate(date)}</div>`;
+    byDate[date].forEach(m=>{ daysHtml += renderMatchCard(m); });
+    daysHtml += `</div>`;
+  });
+
+  view.innerHTML = `
+    <div class="rules-box"><b>Reglas:</b> 3 puntos por marcador exacto &middot; 1 punto por acertar solo el resultado (victoria local, empate o victoria visitante) &middot; 0 puntos si fallas. Los pronósticos se bloquean automáticamente en el horario de inicio de cada partido.</div>
+    <div class="md-scroll">${pillsHtml}</div>
+    ${daysHtml}
+  `;
+
+  view.querySelectorAll('.md-pill').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ activeMD = parseInt(btn.dataset.md); renderPredictView(); });
+  });
+  view.querySelectorAll('.score-input').forEach(inp=>{
+    inp.addEventListener('change', onScoreChange);
+  });
+  view.querySelectorAll('.submit-result-btn').forEach(btn=>{
+    btn.addEventListener('click', onSubmitResult);
+  });
+}
+
+function renderMatchCard(m){
+  const locked = isLocked(m);
+  const result = getResult(m);
+  const pred = myPredictions[m.id];
+  const pts = result ? pointsFor(pred, result) : null;
+
+  let statusBadge, pointsBadge = '';
+  if(result){
+    statusBadge = `<span class="status-badge status-final">Finalizado</span>`;
+    if(pts!==null){
+      const cls = pts===3?'points-3':(pts===1?'points-1':'points-0');
+      pointsBadge = `<span class="points-pill ${cls}">${pts===3?'+3 exacto':(pts===1?'+1 acierto':'0 pts')}</span>`;
+    }
+  } else if(locked){
+    statusBadge = `<span class="status-badge status-locked">Cerrada</span>`;
+  } else {
+    statusBadge = `<span class="status-badge status-open">Abierta</span>`;
+  }
+
+  const homeWinner = result && result.h > result.a;
+  const awayWinner = result && result.a > result.h;
+
+  const leftScoreHtml = result
+    ? `<div class="real-score">${result.h}</div>`
+    : `<input class="score-input" type="number" min="0" max="20" data-match="${m.id}" data-side="h" value="${pred? pred.h : ''}" ${locked?'disabled':''}>`;
+  const rightScoreHtml = result
+    ? `<div class="real-score">${result.a}</div>`
+    : `<input class="score-input" type="number" min="0" max="20" data-match="${m.id}" data-side="a" value="${pred? pred.a : ''}" ${locked?'disabled':''}>`;
+
+  let predRecap = '';
+  if(result && pred){
+    predRecap = `<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Tu pronóstico: ${pred.h}-${pred.a}</div>`;
+  }
+
+  let resultEntry = '';
+  if(!result && locked){
+    resultEntry = `
+      <div class="result-entry">
+        <span>Poner resultado final:</span>
+        <input type="number" min="0" max="20" data-match="${m.id}" data-side="rh" placeholder="0">
+        <span>-</span>
+        <input type="number" min="0" max="20" data-match="${m.id}" data-side="ra" placeholder="0">
+        <button class="submit-result-btn" data-match="${m.id}">Guardar</button>
+      </div>`;
+  }
+
+  return `
+    <div class="match-card ${locked?'locked':''}">
+      <div class="teams">
+        <div class="team-row">
+          <span class="team-name ${homeWinner?'winner':''}">${escapeHtml(m.home)}</span>
+          ${leftScoreHtml}
+        </div>
+        <div class="team-row">
+          <span class="team-name ${awayWinner?'winner':''}">${escapeHtml(m.away)}</span>
+          ${rightScoreHtml}
+        </div>
+        ${predRecap}
+        ${resultEntry}
+      </div>
+      <div class="meta-col">
+        <span class="kickoff">${m.time}${m.md===8?' (aprox.)':''}</span>
+        ${statusBadge}
+        ${pointsBadge}
+      </div>
+    </div>
+  `;
+}
+
+async function onScoreChange(e){
+  const matchId = e.target.dataset.match;
+  const side = e.target.dataset.side;
+  const val = e.target.value === '' ? null : parseInt(e.target.value);
+  if(val===null || isNaN(val) || val<0) return;
+  const existing = myPredictions[matchId] || {h:0,a:0};
+  if(side==='h') existing.h = val; else existing.a = val;
+  await saveMyPrediction(matchId, existing.h, existing.a);
+}
+
+async function onSubmitResult(e){
+  const matchId = e.target.dataset.match;
+  const card = e.target.closest('.match-card');
+  const hInput = card.querySelector('[data-side="rh"]');
+  const aInput = card.querySelector('[data-side="ra"]');
+  const h = parseInt(hInput.value), a = parseInt(aInput.value);
+  if(isNaN(h) || isNaN(a) || h<0 || a<0) return;
+  await submitResult(matchId, h, a);
+  renderPredictView();
+}
+
+/* ============ RENDER: leaderboard ============ */
+async function computeLeaderboard(){
+  await loadPlayers();
+  await loadLiveResults();
+  const table = [];
+  for(const name of players){
+    const preds = await loadPredictionsFor(name);
+    let total = 0, exactCount = 0, hitCount = 0, playedCount = 0;
+    MATCHES.forEach(m=>{
+      const result = getResult(m);
+      if(!result) return;
+      const p = preds[m.id];
+      if(!p) return;
+      playedCount++;
+      const pts = pointsFor(p, result);
+      if(pts===3) exactCount++;
+      else if(pts===1) hitCount++;
+      total += (pts||0);
+    });
+    table.push({name, total, exactCount, hitCount, playedCount});
+  }
+  table.sort((a,b)=> b.total - a.total);
+  return table;
+}
+
+async function renderBoardView(){
+  const view = document.getElementById('board-view');
+  view.innerHTML = `<div class="empty-note">Calculando clasificación…</div>`;
+  const table = await computeLeaderboard();
+  leaderboardCache = table;
+  if(table.length===0){
+    view.innerHTML = `<div class="empty-note">Todavía no hay jugadores registrados.</div>`;
+    return;
+  }
+  view.innerHTML = table.map((row,i)=>{
+    const isMe = row.name===currentPlayer;
+    const rankCls = i<3 ? 'rank top' : 'rank';
+    return `
+      <div class="board-row ${isMe?'me':''}">
+        <div class="${rankCls}">${i+1}</div>
+        <div class="board-name">${escapeHtml(row.name)}${isMe?' (tú)':''}<div style="font-size:11px;color:var(--text-muted);font-weight:400;">${row.exactCount} exactos &middot; ${row.hitCount} aciertos &middot; ${row.playedCount} jugados</div></div>
+        <div class="board-pts">${row.total}<span class="lbl">pts</span></div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* ============ MAIN TABS ============ */
+function setupMainTabs(){
+  const nav = document.getElementById('main-tabs');
+  nav.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      nav.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      activeMainTab = btn.dataset.tab;
+      document.getElementById('predict-view').style.display = activeMainTab==='predict' ? 'block':'none';
+      document.getElementById('board-view').style.display = activeMainTab==='board' ? 'block':'none';
+      if(activeMainTab==='board') await renderBoardView();
+    });
+  });
+}
+
+function renderAll(){
+  renderPredictView();
+  if(activeMainTab==='board') renderBoardView();
+}
+
+/* ============ INIT ============ */
+async function init(){
+  setupMainTabs();
+  document.getElementById('refresh-btn').addEventListener('click', async ()=>{
+    await loadLiveResults();
+    await loadMyPredictions();
+    renderAll();
+  });
+
+  const savedName = await safeGet('my-player-name', false);
+  await loadLiveResults();
+
+  if(savedName){
+    currentPlayer = savedName;
+    await registerPlayer(savedName);
+    await loadMyPredictions();
+    renderPlayerBar();
+    renderAll();
+  } else {
+    await showPlayerModal();
+  }
+
+  // light auto-refresh so friends' entries show up without manual reload
+  setInterval(async ()=>{
+    await loadLiveResults();
+    if(activeMainTab==='predict') renderPredictView();
+    else await renderBoardView();
+  }, 20000);
+}
+
+init();
+</script>
+</body>
+</html>
