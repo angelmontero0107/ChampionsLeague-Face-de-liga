@@ -9,7 +9,9 @@ const API_KEY = process.env.FOOTBALL_DATA_KEY;
 const DRY = process.env.DRY_RUN === '1';
 
 // ---- 1. Leer el fixture desde index.html (misma fuente que la app: ids m1, m2, ...) ----
-const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+//const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+const htmlPath = path.join(__dirname, 'index.html');
+const html = fs.readFileSync(htmlPath, 'utf8');
 const block = html.match(/const RAW_MATCHES = \[([\s\S]*?)\n\];/)[1];
 const rowRe = /\[(\d+),"([\d-]+)","([\d:]+)","([^"]+)","([^"]+)",(null|\d+),(null|\d+)\]/g;
 const MATCHES = [];
