@@ -790,6 +790,9 @@ function renderPredictView(){
   view.querySelectorAll('.score-input').forEach(inp=>{
     inp.addEventListener('change', onScoreChange);
   });
+  view.querySelectorAll('.submit-result-btn').forEach(btn=>{
+    btn.addEventListener('click', onSubmitResult);
+  });
 }
 
 function renderMatchCard(m){
@@ -827,6 +830,18 @@ function renderMatchCard(m){
     predRecap = `<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Tu pronóstico: ${pred.h}-${pred.a}</div>`;
   }
 
+  let resultEntry = '';
+  if(!result && locked){
+    resultEntry = `
+      <div class="result-entry">
+        <span>Poner resultado final:</span>
+        <input type="number" min="0" max="20" data-match="${m.id}" data-side="rh" placeholder="0">
+        <span>-</span>
+        <input type="number" min="0" max="20" data-match="${m.id}" data-side="ra" placeholder="0">
+        <button class="submit-result-btn" data-match="${m.id}">Guardar</button>
+      </div>`;
+  }
+
   return `
     <div class="match-card ${locked?'locked':''}">
       <div class="teams">
@@ -839,6 +854,7 @@ function renderMatchCard(m){
           ${rightScoreHtml}
         </div>
         ${predRecap}
+        ${resultEntry}
       </div>
       <div class="meta-col">
         <span class="kickoff">${panamaTime(m)} (Panamá)${m.md===8?' aprox.':''}</span>
@@ -864,6 +880,17 @@ async function onScoreChange(e){
   const existing = myPredictions[matchId] || {h:0,a:0};
   if(side==='h') existing.h = val; else existing.a = val;
   await saveMyPrediction(matchId, existing.h, existing.a);
+}
+
+async function onSubmitResult(e){
+  const matchId = e.target.dataset.match;
+  const card = e.target.closest('.match-card');
+  const hInput = card.querySelector('[data-side="rh"]');
+  const aInput = card.querySelector('[data-side="ra"]');
+  const h = parseInt(hInput.value, 10), a = parseInt(aInput.value, 10);
+  if(isNaN(h) || isNaN(a) || h<0 || a<0) return;
+  await submitResult(matchId, h, a);
+  renderPredictView();
 }
 
 /* ============ RENDER: leaderboard ============ */
